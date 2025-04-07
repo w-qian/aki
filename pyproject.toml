@@ -23,7 +23,10 @@ dev = [
     "pytest-cov>=4.1.0",
     "black>=23.7.0",
     "flake8>=6.1.0",
-    "coverage>=7.8.0"
+    "coverage>=7.8.0",
+    "pytest-asyncio>=0.26.0",
+    "hatch>=1.14.1",
+    "pip>=25.0.1",
 ]
 
 [tool.hatch.version]
@@ -35,6 +38,12 @@ allow-direct-references = true
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/aki"]
+
+[tool.hatch.env]
+requires = [ "hatch-pip-compile" ]
+
+[tool.hatch.envs.default.scripts]
+release = "scripts/build_release.sh"
 
 [project.scripts]
 aki = "aki.app:main"

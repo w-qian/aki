@@ -18,6 +18,13 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 or follow [official instructions](https://docs.astral.sh/uv/getting-started/installation)
 
+### Install pnpm
+This is required to build chainlit from source
+```bash
+curl -fsSL https://get.pnpm.io/install.sh | sh -
+```
+or follow [official instructions](https://pnpm.io/installation)
+
 ### Using uv
 
 ```bash
@@ -72,6 +79,21 @@ Add new dependencies
 uv add new-dependency-name
 ```
 
+
+### Build Script
+
+Aki provides a comprehensive build script that runs formatting, testing, and building in a single command:
+
+```bash
+# Run the complete build process (format, test, coverage, build)
+hatch run release
+```
+
+This command:
+1. Runs code formatting with black
+2. Executes all tests with coverage tracking
+3. Generates coverage reports (terminal and HTML)
+4. Builds the package using hatch
 
 ### Running Tests
 
