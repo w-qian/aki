@@ -1,0 +1,44 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "aki"
+dynamic = ["version"]
+description = "Aki - An advanced AI assistant framework"
+readme = "README.md"
+requires-python = ">=3.12"
+license = "MIT"
+dependencies = [
+    "chainlit @ git+https://github.com/Aki-community/chainlit.git@main#subdirectory=backend",
+    "langchain==0.3.18",
+    "langgraph==0.3.16",
+    "langchain_community==0.3.17",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-cov>=4.1.0",
+    "black>=23.7.0",
+    "flake8>=6.1.0",
+    "coverage>=7.8.0"
+]
+
+[tool.hatch.version]
+path = "src/aki/version.py"
+pattern = "__version__ = \"(?P<version>.+)\""
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/aki"]
+
+[project.scripts]
+aki = "aki.app:main"
+
+[project.urls]
+Documentation = "https://github.com/Aki-community/aki#readme"
+Issues = "https://github.com/Aki-community/aki/issues"
+Source = "https://github.com/Aki-community/aki"
