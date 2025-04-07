@@ -5,6 +5,9 @@ Aki is a highly customizable AI assistant that adapts to your unique workflow.
 ## Features
 More features coming soon!
 
+### Toolsets
+- **Web Search Tool**: Easily integrate web search capabilities using DuckDuckGo or Google Serper API
+
 ## Getting started
 
 Aki can be installed using various Python package managers. We recommend using uv for its speed and reliability.
@@ -26,6 +29,18 @@ uv tool install --python 3.12 git+https://github.com/Aki-community/aki.git@main
 ```bash
 aki
 ```
+
+## Configuration
+
+### Google Serper API
+
+To use Google Serper API (offers better search results), set the SERPER_API_KEY environment variable:
+
+```bash
+export SERPER_API_KEY="your-api-key"
+```
+
+If the API key is not available, the tool automatically falls back to using DuckDuckGo search.
 
 ## Development
 
@@ -51,6 +66,12 @@ Install additional dependences for developers (test/lint)
 ```bash
 uv sync --extra dev
 ```
+
+Add new dependencies
+```bash
+uv add new-dependency-name
+```
+
 
 ### Running Tests
 
