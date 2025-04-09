@@ -1,1 +1,1 @@
-# Test package initialization
+"""Tests for the Aki package."""
