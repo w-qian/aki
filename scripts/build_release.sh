@@ -19,7 +19,7 @@ echo -e "${YELLOW}Current directory: $(pwd)${NC}"
 
 # 1. Run linting with Black
 echo -e "\n${YELLOW}Step 1/4: Running code formatter (black)...${NC}"
-uv run black src tests
+uv run ruff check --fix src tests
 echo -e "${GREEN}✓ Formatting complete${NC}"
 
 # 2. Run pytest with coverage

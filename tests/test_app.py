@@ -47,7 +47,7 @@ class TestAsyncFunctions:
 
         # Verify Message was created with correct content
         mock_message.assert_called_once()
-        mock_message.assert_called_with(content="Received: Test message")
+        mock_message.assert_called_with(content="You said: Test message")
 
         # Verify send was called
         mock_instance.send.assert_called_once()
