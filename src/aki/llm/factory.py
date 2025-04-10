@@ -1,8 +1,8 @@
 from typing import Dict, Optional, List, Set
 import logging
 from langchain_core.language_models.chat_models import BaseChatModel
-from .providers.base import LLMProvider
 from .capabilities import ModelCapability
+from .providers.base import LLMProvider
 
 
 class LLMFactory:

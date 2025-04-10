@@ -6,8 +6,8 @@ import ollama
 from langchain_core.language_models import BaseChatModel
 from langchain_ollama.chat_models import ChatOllama
 
-from aki.llm import ModelCapability
-from aki.llm.providers import LLMProvider
+from ..capabilities import ModelCapability
+from .base import LLMProvider
 
 
 class OllamaProvider(LLMProvider):

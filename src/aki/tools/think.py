@@ -9,9 +9,15 @@ a dedicated space for reasoning and analysis, which improves performance on comp
 tasks requiring policy adherence and multi-step reasoning.
 """
 
-from typing import Annotated
+from typing import Optional, Type
 from langchain_core.tools import BaseTool, Tool
-from pydantic import Field
+from langchain_core.callbacks import CallbackManagerForToolRun
+from pydantic import BaseModel, Field
+
+
+class ThinkInput(BaseModel):
+    """Input for the Think tool."""
+    thought: str = Field(description="A thought to think about.")
 
 
 class ThinkTool(BaseTool):
@@ -23,29 +29,39 @@ class ThinkTool(BaseTool):
         "change any state, but just append the thought to the log. Use it when complex "
         "reasoning or some cache memory is needed."
     )
-    thought: Annotated[str, Field(description="A thought to think about.")]
+    args_schema: Type[BaseModel] = ThinkInput
 
-    def _run(self, thought: str) -> str:
+    def _run(
+        self,
+        thought: str,
+        run_manager: Optional[CallbackManagerForToolRun] = None,
+    ) -> str:
         """Execute the think tool with the given thought.
 
         Args:
             thought: The thought to process
+            run_manager: Optional callback manager
 
         Returns:
             A confirmation message with the thought
         """
         return f"Thought: {thought}"
 
-    async def _arun(self, thought: str) -> str:
+    async def _arun(
+        self,
+        thought: str,
+        run_manager: Optional[CallbackManagerForToolRun] = None,
+    ) -> str:
         """Async execution of the think tool.
 
         Args:
             thought: The thought to process
+            run_manager: Optional callback manager
 
         Returns:
             A confirmation message with the thought
         """
-        return self._run(thought)
+        return self._run(thought, run_manager=run_manager)
 
 
 def create_think_tool() -> Tool:

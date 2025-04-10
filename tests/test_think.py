@@ -15,7 +15,7 @@ def test_think_tool_execution():
     """Test that the think tool executes and returns expected output."""
     tool = ThinkTool()
     thought = "I need to analyze this problem step by step."
-    result = tool._run(thought)
+    result = tool._run(thought=thought)
     assert result == f"Thought: {thought}"
 
 
@@ -24,5 +24,5 @@ async def test_think_tool_async_execution():
     """Test that the think tool executes asynchronously."""
     tool = ThinkTool()
     thought = "Let me consider multiple approaches."
-    result = await tool._arun(thought)
+    result = await tool._arun(thought=thought)
     assert result == f"Thought: {thought}"
