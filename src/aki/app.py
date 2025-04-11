@@ -5,7 +5,7 @@ import socket
 import logging
 import chainlit as cl
 from chainlit.cli import chainlit_run
-from .version import __version__
+from aki.version import __version__
 
 # Configure basic logging
 logging.basicConfig(
