@@ -24,57 +24,47 @@ class CachePointInjector:
     
     @staticmethod
     def add_cache_point_to_messages(messages: List[Dict], system: List[Dict], max_cache_points: int = 3) -> tuple:
-        """Add cachePoint to messages based on size and importance.
+        """Add cachePoint to system prompt and last 2 user messages.
         
         Args:
             messages: List of message dictionaries from Bedrock
             system: Optional system message (string or dict)
-            max_cache_points: Maximum number of cache points to add (default: 3)
+            max_cache_points: Maximum number of cache points to add (default: 3, ignored)
             
         Returns:
             Tuple of (modified messages list, modified system)
         """
-        # Prepare list of message info including system if present
-        message_info = []
-        
-        # Add system message to consideration if it exists
-        if len(system) > 0:
-            system_token_size = CachePointInjector._estimate_token_size(system[0])
-            message_info.append({"index": -1, "size": system_token_size, "is_system": True})
-        
-        # Process regular messages
-        for i, msg in enumerate(messages):
-            role = msg.get("role", "")
-            is_system = (role == "system")
-            
-            # Estimate token size using tiktoken
-            token_size = CachePointInjector._estimate_token_size(msg)
-            message_info.append({"index": i, "size": token_size, "is_system": is_system})
-        
-        # Sort messages by priority (system first, then by size)
-        message_info.sort(key=lambda x: (-int(x["is_system"]), -x["size"]))
-        
-        # Determine which messages to add cache points to (up to max_cache_points)
+        # Cache point indices to track which messages get cache points
         cache_indices = set()
-        for info in message_info[:max_cache_points]:
-            # Only add cache point if message is large enough
-            min_size = 1500
-            if info["size"] >= min_size:
-                cache_indices.add(info["index"])
         
-        # Process system message if it's selected for caching
+        # 1. Always add a cache point to the system message if it exists
         modified_system = system
-        if -1 in cache_indices and system is not None:
-            # Only convert to dict and add cache point if it's a string
+        if len(system) > 0:
             if "cachePoint" not in modified_system:
                 modified_system.append({"cachePoint": {"type": "default"}})
+            logger.debug("Added cache point to system message")
         
-        # Add cache points to selected regular messages
+        # 2. Find the last 2 user messages and mark them for cache points
+        user_message_indices = []
+        for i, msg in enumerate(messages):
+            role = msg.get("role", "")
+            if role == "user":
+                user_message_indices.append(i)
+        
+        # Get the last 2 user message indices (or all if less than 2)
+        last_user_indices = user_message_indices[-2:] if len(user_message_indices) > 1 else user_message_indices
+        
+        # Add these indices to our cache set
+        for idx in last_user_indices:
+            cache_indices.add(idx)
+            logger.debug(f"Marked user message at index {idx} for cache point")
+        
+        # 3. Process all messages, adding cache points to the selected indices
         result = []
         for i, msg in enumerate(messages):
             new_msg = dict(msg)  # Create a copy
             
-            # Add cache point if this message is selected
+            # Add cache point if this message was selected
             if i in cache_indices:
                 new_msg = CachePointInjector._add_cache_point(new_msg)
                 logger.debug(f"Added cache point to message with role: {new_msg.get('role', 'unknown')}")
