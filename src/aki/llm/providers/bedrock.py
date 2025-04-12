@@ -3,18 +3,14 @@
 import logging
 import boto3
 import json
-from typing import Dict, List, Optional, Set, Any, Tuple, Iterator, Union, Sequence, Callable, Literal
+from typing import Dict, List, Optional, Set, Any, Tuple, Iterator
 from botocore.client import BaseClient, Config
 
 from langchain_aws import ChatBedrockConverse
 from langchain_aws.chat_models.bedrock_converse import _messages_to_bedrock, _snake_to_camel_keys, _parse_response, _parse_stream_event
 from langchain_core.language_models.chat_models import BaseChatModel
-from langchain_core.language_models import LanguageModelInput
 from langchain_core.messages import BaseMessage
 from langchain_core.outputs import ChatResult, ChatGeneration, ChatGenerationChunk
-from langchain_core.runnables import Runnable
-from langchain_core.tools import BaseTool
-from langchain_core.utils.pydantic import TypeBaseModel
 
 from ...config import get_env_file, get_config_value
 from ..capabilities import ModelCapability
@@ -42,10 +38,9 @@ class CachePointInjector:
         message_info = []
         
         # Add system message to consideration if it exists
-        system_token_size = CachePointInjector._estimate_token_size(system[0])
-
-        # Add system to message info with special index -1
-        message_info.append({"index": -1, "size": system_token_size, "is_system": True})
+        if len(system) > 0:
+            system_token_size = CachePointInjector._estimate_token_size(system[0])
+            message_info.append({"index": -1, "size": system_token_size, "is_system": True})
         
         # Process regular messages
         for i, msg in enumerate(messages):
@@ -168,34 +163,30 @@ class CachingBedrockConverse(ChatBedrockConverse):
         # Set the field after parent initialization
         object.__setattr__(self, "max_cache_points", max_points)
     
-    def bind_tools(
+    def _converse_params(
         self,
-        tools: Sequence[Union[Dict[str, Any], TypeBaseModel, Callable, BaseTool]],
-        *,
-        tool_choice: Optional[Union[dict, str, Literal["auto", "any"]]] = None,
         **kwargs: Any,
-    ) -> Runnable[LanguageModelInput, BaseMessage]:
-        """Override bind_tools to add cache point to the tools config."""
-        # Use the parent's method to format the tools and create the base model
-        model_with_tools = super().bind_tools(tools, tool_choice=tool_choice, **kwargs)
+    ) -> Dict[str, Any]:
+        """Override _converse_params to add cache points to tools configuration."""
+        # First get the parameters from the parent class
+        params = super()._converse_params(**kwargs)
         
-        # Get the current params to modify them
-        if hasattr(model_with_tools, "kwargs") and "toolConfig" in model_with_tools.kwargs:
-            # Add cache point to the tools list
-            if "tools" in model_with_tools.kwargs["toolConfig"]:
+        # Add cache point to toolConfig if present
+        if "toolConfig" in params and params["toolConfig"] is not None:
+            tool_config = params["toolConfig"]
+            if "tools" in tool_config and tool_config["tools"] is not None:
+                tools_list = tool_config["tools"]
                 # Check if there's already a cache point
-                tools_list = model_with_tools.kwargs["toolConfig"]["tools"]
                 has_cache_point = any(
                     isinstance(tool, dict) and "cachePoint" in tool 
                     for tool in tools_list
                 )
-                
                 # Add cache point if needed
                 if not has_cache_point:
-                    logger.info("Adding cache point to tools configuration")
+                    logger.debug("Adding cache point to tools configuration")
                     tools_list.append({"cachePoint": {"type": "default"}})
         
-        return model_with_tools
+        return params
     
     def _generate(
         self,

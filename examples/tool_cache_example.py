@@ -3,7 +3,7 @@
 import time
 import json
 from typing import List, Dict, Any
-from src.aki.llm import llm_factory
+from aki.llm import llm_factory
 from pydantic import BaseModel, Field
 
 
