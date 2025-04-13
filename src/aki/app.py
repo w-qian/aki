@@ -189,6 +189,20 @@ async def on_stop():
     logging.debug(f"[on_stop] Adding assistant message: {message}")
     messages.append(AIMessage(content=message))
 
+    # Update loading message to remove the animation
+    if hasattr(chainlit_callback, "loading_message") and chainlit_callback.loading_message:
+        await chainlit_callback.loading_message.remove()
+
+    # Update thinking step to remove the animation
+    if hasattr(chainlit_callback, "in_thinking_mode") and chainlit_callback.in_thinking_mode:
+        chainlit_callback.in_thinking_mode = False
+        # Signal the thinking worker to complete
+        await chainlit_callback.thinking_queue.put(None)
+
+    # Update any active response message to remove the animation
+    if hasattr(chainlit_callback, "response_message") and chainlit_callback.response_message:
+        await chainlit_callback.response_message.update()
+
 
 @cl.on_chat_end
 async def on_chat_end():
