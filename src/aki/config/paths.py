@@ -5,7 +5,7 @@ from pathlib import Path
 
 def get_aki_home() -> Path:
     """Get the Aki home directory path.
-    
+
     Returns:
         Path to the ~/.aki directory, creating it if it doesn't exist
     """
@@ -17,7 +17,7 @@ def get_aki_home() -> Path:
 
 def get_env_file() -> Path:
     """Get the path to the environment configuration file.
-    
+
     Returns:
         Path to the ~/.aki/.env file
     """
