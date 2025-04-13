@@ -1,10 +1,8 @@
 """EventHandler for Aki application."""
 
 import os
-import sys
 import logging
 import json
-from pathlib import Path
 
 import chainlit as cl
 from chainlit.types import ThreadDict
@@ -25,26 +23,30 @@ from aki.chat.export_conversation import (
 
 class EventHandler:
     """Handles all Chainlit events and maintains application state."""
-    
+
     def __init__(self, usage_callback=None):
         """Initialize the event handler with required components.
-        
+
         Args:
             usage_callback: Optional custom usage callback. If None, a default will be created.
         """
         self.profile_factory = ProfileFactory()
         self.chainlit_callback = ChainlitCallback()
-        
+
         # Use provided usage_callback or create default
-        self.usage_callback = usage_callback if usage_callback is not None else UsageCallback(metrics=None)
-    
+        self.usage_callback = (
+            usage_callback
+            if usage_callback is not None
+            else UsageCallback(metrics=None)
+        )
+
     def setup_data_layer(self):
         """Set up the data persistence layer."""
         if not db_manager:
             logging.info("Chat history is disabled. Not registering data layer.")
             return None
         return db_manager.get_adapter()
-    
+
     async def setup_chat_profiles(self):
         """Load available chat profiles."""
         logging.debug("Loading chat profiles")
@@ -56,13 +58,13 @@ class EventHandler:
                 profiles.append(profile_class.chat_profile())
 
         return profiles
-    
+
     def header_auth_callback(self, headers: dict) -> cl.User | None:
         """Handle header-based authentication."""
         return cl.User(
             identifier="admin", metadata={"role": "admin", "provider": "credentials"}
         )
-    
+
     async def start_chat(self, chat_profile: str, state: dict | None = None):
         """Start or resume a chat session.
 
@@ -103,7 +105,7 @@ class EventHandler:
         except Exception as e:
             logging.error(f"[start_chat] Failed to initialize chat: {e}", exc_info=True)
             raise
-    
+
     async def handle_chat_start(self):
         """Handle chat start event."""
         logging.debug("Chat start event triggered")
@@ -114,7 +116,9 @@ class EventHandler:
 
         # Use default profile if none selected
         chat_profile = getattr(cl.context.session, "chat_profile", None)
-        logging.debug(f"[on_chat_start] Initial chat_profile from session: {chat_profile}")
+        logging.debug(
+            f"[on_chat_start] Initial chat_profile from session: {chat_profile}"
+        )
 
         if chat_profile is None:
             chat_profile = self.profile_factory.get_default_profile()
@@ -124,11 +128,13 @@ class EventHandler:
             await self.start_chat(chat_profile)
             await register_export_command()
         except Exception as e:
-            logging.error(f"[on_chat_start] Failed to initialize chat: {e}", exc_info=True)
+            logging.error(
+                f"[on_chat_start] Failed to initialize chat: {e}", exc_info=True
+            )
             await cl.Message(
                 content="Sorry, there was a problem setting up your chat session. Please try a new conversation."
             ).send()
-    
+
     async def handle_settings_update(self, settings: cl.ChatSettings):
         """Handle settings update event."""
         state = cl.user_session.get("state")
@@ -140,8 +146,10 @@ class EventHandler:
                 state[key] = settings[key]
 
         cl.user_session.set("state", state)
-        logging.debug(f"[on_settings_update] Updated state: {cl.user_session.get('state')}")
-    
+        logging.debug(
+            f"[on_settings_update] Updated state: {cl.user_session.get('state')}"
+        )
+
     async def handle_stop(self):
         """Handle stop event."""
         messages = cl.user_session.get("state")["messages"]
@@ -175,19 +183,28 @@ class EventHandler:
         messages.append(AIMessage(content=message))
 
         # Update loading message to remove the animation
-        if hasattr(self.chainlit_callback, "loading_message") and self.chainlit_callback.loading_message:
+        if (
+            hasattr(self.chainlit_callback, "loading_message")
+            and self.chainlit_callback.loading_message
+        ):
             await self.chainlit_callback.loading_message.remove()
 
         # Update thinking step to remove the animation
-        if hasattr(self.chainlit_callback, "in_thinking_mode") and self.chainlit_callback.in_thinking_mode:
+        if (
+            hasattr(self.chainlit_callback, "in_thinking_mode")
+            and self.chainlit_callback.in_thinking_mode
+        ):
             self.chainlit_callback.in_thinking_mode = False
             # Signal the thinking worker to complete
             await self.chainlit_callback.thinking_queue.put(None)
 
         # Update any active response message to remove the animation
-        if hasattr(self.chainlit_callback, "response_message") and self.chainlit_callback.response_message:
+        if (
+            hasattr(self.chainlit_callback, "response_message")
+            and self.chainlit_callback.response_message
+        ):
             await self.chainlit_callback.response_message.update()
-    
+
     async def handle_chat_end(self):
         """Handle chat end event and save state if needed."""
         # Check if chat history is enabled in configuration
@@ -215,12 +232,14 @@ class EventHandler:
                     )
             except Exception as e:
                 logging.error(f"Failed to save state: {e}", exc_info=True)
-    
+
     async def handle_chat_resume(self, thread: ThreadDict):
         """Handle chat resume event."""
         # Check if chat history is enabled in configuration
         if not db_manager:
-            logging.debug("[on_chat_resume] Chat history is disabled. Starting new chat.")
+            logging.debug(
+                "[on_chat_resume] Chat history is disabled. Starting new chat."
+            )
             # Fall back to default profile
             default_profile = self.profile_factory.get_default_profile()
             logging.debug(f"[on_chat_resume] Using default profile: {default_profile}")
@@ -250,7 +269,7 @@ class EventHandler:
                     await self.start_chat(default_profile)
         except Exception as e:
             logging.error(f"Failed to resume chat: {e}", exc_info=True)
-    
+
     async def handle_message(self, message: cl.Message):
         """
         Process user messages using astream_events with reliable state updates.
@@ -306,7 +325,9 @@ class EventHandler:
 
         # Validate the message before processing
         if not self.is_valid_message(message):
-            logging.warning("[on_message] Invalid message received - no text and no images")
+            logging.warning(
+                "[on_message] Invalid message received - no text and no images"
+            )
             await cl.Message(
                 content="Please provide a message with text or at least one image."
             ).send()
@@ -344,7 +365,7 @@ class EventHandler:
                 elif output["event"] == "on_chain_end" and output["name"] == graph.name:
                     # Merge final LangGraph output with existing state
                     state.update(output["data"]["output"])
-                    
+
             # Finalize response message if it exists
             if self.chainlit_callback.response_message:
                 await self.chainlit_callback.response_message.update()
@@ -357,7 +378,7 @@ class EventHandler:
             logging.error(error_msg, exc_info=True)
             fix_suggestion = "Please try a new conversation or report the issue to #aki-interest slack channel."
             await cl.Message(content=f"{error_msg} {fix_suggestion}").send()
-    
+
     def get_or_create_profile(self, chat_profile: str) -> BaseProfile:
         """Get cached profile instance or create a new one.
 
@@ -376,7 +397,7 @@ class EventHandler:
             cl.user_session.set(profile_key, profile)
 
         return profile
-    
+
     def is_valid_message(self, message: cl.Message) -> bool:
         """Check if a message is valid for processing.
 

@@ -158,21 +158,21 @@ class ChainlitCallback(AsyncCallbackHandler):
         # For example, pretty formatting for search results, etc.
 
         return output_obj
-        
+
     @staticmethod
     def _is_message_empty(message):
         """
         Check if a Chainlit message has empty content (after stripping whitespace).
-        
+
         Args:
             message: Chainlit message object to check
-            
+
         Returns:
             bool: True if message content is empty or just whitespace, False otherwise
         """
         if not message or not hasattr(message, "content"):
             return True
-            
+
         content = message.content
         return not content or (isinstance(content, str) and not content.strip())
 
@@ -525,7 +525,9 @@ class ChainlitCallback(AsyncCallbackHandler):
                 logger.debug("Handling loading message at LLM end")
                 # Check if the message is empty
                 if self._is_message_empty(self.loading_message):
-                    logger.debug("Found empty loading message, clearing reference without removal")
+                    logger.debug(
+                        "Found empty loading message, clearing reference without removal"
+                    )
                     await self.loading_message.remove()
                     self.loading_message = None
                 elif not self.seen_first_token:
@@ -729,9 +731,13 @@ class ChainlitCallback(AsyncCallbackHandler):
                 )
             elif "search" in name.lower():
                 avatar_name = "search"
-                
-            if self.loading_message != None and self._is_message_empty(self.loading_message):
-                logger.debug("Found empty loading message, clearing reference without removal")
+
+            if self.loading_message is not None and self._is_message_empty(
+                self.loading_message
+            ):
+                logger.debug(
+                    "Found empty loading message, clearing reference without removal"
+                )
                 await self.loading_message.remove()
                 self.loading_message = None
 

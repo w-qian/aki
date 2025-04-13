@@ -3,7 +3,6 @@ import logging
 from langchain_core.language_models.chat_models import BaseChatModel
 from .capabilities import ModelCapability
 from .providers.base import LLMProvider
-from .reasoning import get_reasoning_config, ReasoningConfig
 
 
 class LLMFactory:
@@ -43,32 +42,49 @@ class LLMFactory:
         """
         # Start with the model name as base key
         key = model_name
-        
+
         # Handle common parameters with defaults
-        temperature = kwargs.get('temperature', 0.6)
-        rounded_temp = round(float(temperature), 1)  # Round to 1 decimal place for caching
+        temperature = kwargs.get("temperature", 0.6)
+        rounded_temp = round(
+            float(temperature), 1
+        )  # Round to 1 decimal place for caching
         key = f"{key}:temp_{rounded_temp}"
-        
-        enable_prompt_cache = kwargs.get('enable_prompt_cache', False)
+
+        enable_prompt_cache = kwargs.get("enable_prompt_cache", False)
         key = f"{key}:cache_{enable_prompt_cache}"
-        
+
         # Special handling for reasoning_config
-        reasoning_config = kwargs.get('reasoning_config', None)
+        reasoning_config = kwargs.get("reasoning_config", None)
         if reasoning_config:
-            if hasattr(reasoning_config, 'budget_tokens'):
+            if hasattr(reasoning_config, "budget_tokens"):
                 key = f"{key}:reasoning:{reasoning_config.budget_tokens}"
-            elif isinstance(reasoning_config, dict) and 'budget_tokens' in reasoning_config:
+            elif (
+                isinstance(reasoning_config, dict)
+                and "budget_tokens" in reasoning_config
+            ):
                 key = f"{key}:reasoning:{reasoning_config['budget_tokens']}"
-        
+
         # Add any other relevant kwargs that would affect model behavior
         # Skip already processed keys and any keys that shouldn't affect caching
-        skip_keys = {'temperature', 'enable_prompt_cache', 'reasoning_config', 'name', 'model', 'tools'}
+        skip_keys = {
+            "temperature",
+            "enable_prompt_cache",
+            "reasoning_config",
+            "name",
+            "model",
+            "tools",
+        }
         for k, v in sorted(kwargs.items()):  # Sort for consistent order
             if k not in skip_keys and v is not None:
                 # Convert complex values to a simple string representation
-                if isinstance(v, bool) or isinstance(v, int) or isinstance(v, float) or isinstance(v, str):
+                if (
+                    isinstance(v, bool)
+                    or isinstance(v, int)
+                    or isinstance(v, float)
+                    or isinstance(v, str)
+                ):
                     key = f"{key}:{k}_{v}"
-        
+
         return key
 
     def create_model(
@@ -102,10 +118,7 @@ class LLMFactory:
         supports_tools = ModelCapability.TOOL_CALLING in capabilities
 
         # Generate cache key and check for cached instance
-        cache_key = self._get_llm_cache_key(
-            model_name,
-            **kwargs
-        )
+        cache_key = self._get_llm_cache_key(model_name, **kwargs)
 
         # Return cached instance if available
         if cache_key in self._llm_cache:

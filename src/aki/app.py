@@ -19,7 +19,6 @@ from aki.config.logging_config import setup_logging
 
 setup_logging()
 
-import logging
 import chainlit as cl
 from chainlit.cli import chainlit_run
 
