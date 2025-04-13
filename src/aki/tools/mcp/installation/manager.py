@@ -83,7 +83,7 @@ class InstallationManager:
             logger.debug(f"No check script for '{self.name}', assuming installed")
             return True
 
-        logger.info(f"Checking if MCP server '{self.name}' is already installed...")
+        logger.debug(f"Checking if MCP server '{self.name}' is already installed...")
 
         try:
             # Handle script file case
@@ -201,9 +201,9 @@ class InstallationManager:
                 )
 
                 # Always log stdout and stderr, regardless of status
-                logger.info(f"Script stdout:\n{result.stdout}")
+                logger.debug(f"Script stdout:\n{result.stdout}")
                 if result.stderr.strip():
-                    logger.info(f"Script stderr:\n{result.stderr}")
+                    logger.debug(f"Script stderr:\n{result.stderr}")
 
                 if result.returncode != 0:
                     logger.error(f"Script failed with return code {result.returncode}")
