@@ -14,8 +14,9 @@ logger = logging.getLogger(__name__)
 
 # Skip these tests if credentials are not available
 pytestmark = pytest.mark.skipif(
-    os.environ.get("AWS_ACCESS_KEY_ID") is None or os.environ.get("AWS_SECRET_ACCESS_KEY") is None,
-    reason="AWS credentials not available"
+    os.environ.get("AWS_ACCESS_KEY_ID") is None
+    or os.environ.get("AWS_SECRET_ACCESS_KEY") is None,
+    reason="AWS credentials not available",
 )
 
 
@@ -30,7 +31,9 @@ def bedrock_provider() -> Generator[BedrockProvider, None, None]:
 def model_id() -> str:
     """Get a model ID to use for testing."""
     # Use a default model that's relatively inexpensive
-    return os.environ.get("BEDROCK_TEST_MODEL_ID", "us.anthropic.claude-3-5-sonnet-20241022-v2:0")
+    return os.environ.get(
+        "BEDROCK_TEST_MODEL_ID", "us.anthropic.claude-3-5-sonnet-20241022-v2:0"
+    )
 
 
 class TestBedrockProvider:
@@ -67,13 +70,17 @@ class TestBedrockModelIntegration:
         model = bedrock_provider.create_model("test", model_id)
         assert model is not None
         # LangChain models don't have get_capabilities, check the provider capabilities instead
-        assert ModelCapability.TEXT_TO_TEXT in bedrock_provider.capabilities.get(model_id, set())
+        assert ModelCapability.TEXT_TO_TEXT in bedrock_provider.capabilities.get(
+            model_id, set()
+        )
 
     def test_model_generation(self, bedrock_provider, model_id):
         """Test generating text from the model."""
         try:
             model = bedrock_provider.create_model("test", model_id)
-            result = model.invoke([{"type": "human", "content": "Say 'Hello, Aki!' and nothing else."}])
+            result = model.invoke(
+                [{"type": "human", "content": "Say 'Hello, Aki!' and nothing else."}]
+            )
             assert result is not None
             assert "hello, aki!" in result.content.lower()
         except Exception as e:

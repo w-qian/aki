@@ -17,9 +17,10 @@ cd "$(dirname "$0")/.." || exit 1
 
 echo -e "${YELLOW}Current directory: $(pwd)${NC}"
 
-# 1. Run linting with Black
+# 1. Run linting with Black and Ruff
 echo -e "\n${YELLOW}Step 1/4: Running code formatter (black)...${NC}"
-uv run ruff check --fix src tests
+uv run black src tests
+uv run ruff check --fix src tests --ignore E402
 echo -e "${GREEN}✓ Formatting complete${NC}"
 
 # 2. Run pytest with coverage

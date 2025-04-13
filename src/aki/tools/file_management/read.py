@@ -1,5 +1,6 @@
 """Tool for reading files from disk."""
 
+import logging
 import os
 import json
 import mimetypes
@@ -94,8 +95,8 @@ class ReadFileTool(ReadFileBase, BaseTool):
             # Try to guess mime type
             try:
                 result["metadata"]["mime_type"] = mimetypes.guess_type(path_obj)[0]
-            except:
-                pass
+            except Exception as e:
+                logging.debug(f"Guess mime type error: {e}")
 
             # Check file size
             file_size = result["metadata"]["file_size"]

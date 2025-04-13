@@ -1,0 +1,39 @@
+{
+  "name": "Aki - Ask me anything",
+  "description": "Your AI assistant for SDEs.",
+  "system_prompt_file": "prompts/aki.txt",
+  "rules_file": "prompts/aki_rule.txt",
+  "tools": [
+    "file_management_full",
+    "shell_command",
+    "render_html",
+    "code_analyzer",
+    "web_search",
+    "tasklist",
+    "get_datetime_now",
+    "python_executor",
+    "process_manager",
+    "think",
+    "batch_tool"
+  ],
+  "enabled_mcp_servers": "__ALL__",
+  "default_model": "(bedrock)us.anthropic.claude-3-7-sonnet-20250219-v1:0",
+  "reasoning_config": {
+    "default_enabled": true,
+    "budget_tokens": 4096
+  },
+  "starters": [
+    {
+      "label": "Introduce yourself",
+      "message": "Can you briefly introduce your self and what capabilities you have?"
+    },
+    {
+      "label": "Analyze code",
+      "message": "Can you help me analyze the code in my current directory?"
+    },
+    {
+      "label": "Brainstorming",
+      "message": "Let's discuss how to better use Aki?"
+    }
+  ]
+}

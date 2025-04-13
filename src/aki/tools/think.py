@@ -17,12 +17,13 @@ from pydantic import BaseModel, Field
 
 class ThinkInput(BaseModel):
     """Input for the Think tool."""
+
     thought: str = Field(description="A thought to think about.")
 
 
 class ThinkTool(BaseTool):
     """Tool for structured thinking without retrieving new information."""
-    
+
     name: str = "think"
     description: str = (
         "Use the tool to think about something. It will not obtain new information or "
@@ -66,7 +67,7 @@ class ThinkTool(BaseTool):
 
 def create_think_tool() -> Tool:
     """Create and return a think tool.
-    
+
     Returns:
         Tool: A LangChain Tool object configured for structured thinking
     """

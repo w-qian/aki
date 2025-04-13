@@ -1,0 +1,38 @@
+<rule>
+<mermaid_diagram>
+Generate code architecture mermaid diagrams immediately and directly from code analysis.
+
+Follow these specific guidelines:
+
+1. LAYOUT OPTIMIZATION:
+   - Use graph TD
+   - <IMPORTANT>Limit each diagram to 10-15 nodes maximum for clarity.</IMPORTANT>
+
+2. CREATE 3 FOCUSED DIAGRAMS
+   - MODULE DEPENDENCIES: Show import/usage relationships between major components
+   - DATA FLOW: Illustrate how information moves through the system during typical operations
+   - SEQUENCE DIAGRAM: Show critical interaction patterns between key components
+
+<naming>
+   - Use camelCase format. Use a phrase. <example>mainService</example>
+</naming>
+
+<style>
+  - ONLY for graph diagrams:
+    - Use `linkStyle default stroke:lightgrey,stroke-width:1.5px,color:darkgrey;`
+    - Use 24px for node text, and use 22px and aliceblue background for arrow text
+      <example>llmFactory[<div style='font-size:24px'>llmFactory</div>]</example>
+      <example>Agent -->|<div style='font-size:22px; background-color:aliceblue'>uses</div>| Tool</example>
+
+  - ONLY for sequence diagrams:
+    - begin with `%%{init: {'fontSize': 24}}%%`
+    - `box white
+      participant ParticipantA
+      participant ParticipantB
+      end`
+</style>
+
+Give a short summary and ask user for further instructions
+
+</mermaid_diagram>
+</rule>

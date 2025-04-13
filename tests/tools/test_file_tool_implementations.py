@@ -1,7 +1,5 @@
 """Tests for the file management tools."""
 
-import os
-import sys
 import pytest
 import tempfile
 from pathlib import Path
@@ -12,11 +10,6 @@ from aki.tools.file_management.file_paths import (
     OPERATION_WRITE,
     FileNotFoundError,
     AccessDeniedError,
-)
-from aki.tools.file_management.base_tools import (
-    BaseFileTool,
-    ReadFileTool,
-    WriteFileTool,
 )
 from aki.tools.file_management.read import ReadFileTool as ReadFileImplementation
 from aki.tools.file_management.write import (
