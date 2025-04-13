@@ -487,6 +487,13 @@ class ChainlitCallback(AsyncCallbackHandler):
             self.current_author = author  # Update current author
             self.current_run_id = run_id
 
+        # Check if there's an existing loading message and remove it first
+        # This prevents duplicate loading messages when the model is throttled
+        if hasattr(self, "loading_message") and self.loading_message:
+            logger.debug("Removing existing loading message before creating a new one")
+            await self.loading_message.remove()
+            self.loading_message = None
+
         # Create initial loading message that will be replaced later
         self.loading_message = cl.Message(content="", author=self.current_author)
         await self.loading_message.stream_token(" ")
