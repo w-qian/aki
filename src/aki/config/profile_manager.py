@@ -2,6 +2,7 @@
 
 import json
 import logging
+import os
 from pathlib import Path
 from typing import Dict, List, Optional
 import chainlit as cl
@@ -29,6 +30,7 @@ class ProfileManager:
     _initialized = False
 
     BUILTIN_PROFILES = {"aki", "akira", "akisa"}
+    BUILTIN_PROFILES_PATH_ENV_VAR = "AKI_BUILTIN_PROFILES_PATH"  
 
     def __new__(cls):
         if cls._instance is None:
@@ -42,10 +44,39 @@ class ProfileManager:
             self.registry = ProfileRegistry()
             self.config_dir = get_aki_home()
             self.package_dir = Path(__file__).parent.parent
+            self.builtin_profiles_dir = self._get_builtin_profiles_dir() 
             self.profiles = {}
             self._tool_factories = self._init_tool_factories()
             self._load_profiles()
             ProfileManager._initialized = True
+    
+    def _get_builtin_profiles_dir(self) -> Path:
+        """Get the directory containing built-in profiles."""
+        # Check environment variable first
+        custom_dir = os.environ.get(self.BUILTIN_PROFILES_PATH_ENV_VAR)
+        if custom_dir and os.path.isdir(custom_dir):
+            logger.info(f"Using custom built-in profiles directory: {custom_dir}")
+            return Path(custom_dir)
+        
+        # Default to package directory
+        return self.package_dir / "profiles"
+    
+    def set_builtin_profiles_dir(self, directory_path: str) -> None:
+        """Set the directory containing built-in profiles.
+        
+        Args:
+            directory_path: Path to directory containing built-in profile files
+            
+        Raises:
+            ValueError: If directory doesn't exist
+        """
+        path = Path(directory_path)
+        if not path.is_dir():
+            raise ValueError(f"Built-in profiles directory does not exist: {directory_path}")
+        
+        self.builtin_profiles_dir = path
+        # Reload profiles
+        self._load_profiles()
 
     def _init_tool_factories(self) -> Dict[str, callable]:
         """Initialize mapping of tool names to their factory functions."""
@@ -69,11 +100,15 @@ class ProfileManager:
     def _load_profiles(self):
         """Load all available profiles."""
         logger.debug("Starting to load profiles")
+        
+        # Reset profiles dict for reloading
+        self.profiles = {}
+        
         # Load built-in agent profiles
-        profiles_dir = self.package_dir / "profiles"
-        logger.debug(f"Loading profiles from: {profiles_dir}")
+        # Modified to use self.builtin_profiles_dir instead of self.package_dir / "profiles"
+        logger.debug(f"Loading profiles from: {self.builtin_profiles_dir}")
         for profile in self.BUILTIN_PROFILES:
-            path = profiles_dir / f"{profile}.json"
+            path = self.builtin_profiles_dir / f"{profile}.json"
             try:
                 with open(path) as f:
                     config = json.load(f)
@@ -285,8 +320,9 @@ class ProfileManager:
         # Check if profile uses a prompt file
         if "system_prompt_file" in profile:
             if self.is_builtin_profile(profile_name):
+                # Modified to use self.builtin_profiles_dir instead of self.package_dir
                 package_prompt_path = (
-                    self.package_dir / "profiles" / profile["system_prompt_file"]
+                    self.builtin_profiles_dir / profile["system_prompt_file"]
                 )
                 try:
                     with open(package_prompt_path) as f:
@@ -328,7 +364,8 @@ class ProfileManager:
 
         # Load rules from file
         if self.is_builtin_profile(profile_name):
-            package_rules_path = self.package_dir / "profiles" / profile["rules_file"]
+            # Modified to use self.builtin_profiles_dir instead of self.package_dir
+            package_rules_path = self.builtin_profiles_dir / profile["rules_file"]
             try:
                 with open(package_rules_path) as f:
                     return f.read()
