@@ -158,6 +158,23 @@ class ChainlitCallback(AsyncCallbackHandler):
         # For example, pretty formatting for search results, etc.
 
         return output_obj
+        
+    @staticmethod
+    def _is_message_empty(message):
+        """
+        Check if a Chainlit message has empty content (after stripping whitespace).
+        
+        Args:
+            message: Chainlit message object to check
+            
+        Returns:
+            bool: True if message content is empty or just whitespace, False otherwise
+        """
+        if not message or not hasattr(message, "content"):
+            return True
+            
+        content = message.content
+        return not content or (isinstance(content, str) and not content.strip())
 
     """
     Custom callback handler built from scratch that integrates with Chainlit UI
@@ -434,9 +451,6 @@ class ChainlitCallback(AsyncCallbackHandler):
                     if hasattr(self, "loading_message") and self.loading_message:
                         await self.loading_message.remove()
                         self.loading_message = None
-                        logger.debug(
-                            "Removed loading message before creating thinking step"
-                        )
 
                     # Start thinking worker task with context manager
                     self.thinking_task = asyncio.create_task(self._thinking_worker())
@@ -509,7 +523,12 @@ class ChainlitCallback(AsyncCallbackHandler):
             # we should handle it appropriately
             if hasattr(self, "loading_message") and self.loading_message:
                 logger.debug("Handling loading message at LLM end")
-                if not self.seen_first_token:
+                # Check if the message is empty
+                if self._is_message_empty(self.loading_message):
+                    logger.debug("Found empty loading message, clearing reference without removal")
+                    await self.loading_message.remove()
+                    self.loading_message = None
+                elif not self.seen_first_token:
                     # No tokens were streamed - will handle content through loading message
                     logger.debug("No tokens streamed, preparing to use loading message")
                     self.response_message = self.loading_message
@@ -710,6 +729,11 @@ class ChainlitCallback(AsyncCallbackHandler):
                 )
             elif "search" in name.lower():
                 avatar_name = "search"
+                
+            if self.loading_message != None and self._is_message_empty(self.loading_message):
+                logger.debug("Found empty loading message, clearing reference without removal")
+                await self.loading_message.remove()
+                self.loading_message = None
 
             # Create the tool step
             async with cl.Step(
