@@ -13,6 +13,7 @@ from langchain_core.messages import ToolMessage
 from .think import create_think_tool
 from .web_search import create_web_search_tool
 
+
 def tool_routing(state: Dict[str, Any], tools: List[BaseTool]) -> Dict[str, Any]:
     """
     Route tool calls to appropriate tools and execute them.

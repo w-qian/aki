@@ -1,0 +1,1 @@
+UTF-8 encoded text with emoji 😀 and special characters like ñ, ö, é, and Japanese こんにちは

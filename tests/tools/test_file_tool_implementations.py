@@ -1,4 +1,4 @@
-"""Tests for the file management tools."""
+"""Tests for the redesigned file management tools."""
 
 import pytest
 import tempfile
