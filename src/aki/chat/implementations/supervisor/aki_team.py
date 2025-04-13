@@ -20,7 +20,6 @@ from ...base.base_profile import BaseProfile
 from ....llm import llm_factory, ModelCapability
 from ....tools.router import create_router_tool
 from ....tools.render_html import create_render_html_tool
-from ....tools.browser_control import create_browser_action_tool
 from ....tools.code_executor import create_execute_python_tool
 from ....tools.tasklist_manager import create_tasklist_tool
 from ....tools.file_management.toolkit import FileManagementToolkit
@@ -99,7 +98,7 @@ class AkiTeamProfile(BaseProfile):
 
     def get_akita_tools(self) -> List[BaseTool]:
         """Get tools for Akita."""
-        return [create_browser_action_tool(), create_execute_python_tool()]
+        return [create_execute_python_tool()]
 
     @property
     def aki_llm(self):

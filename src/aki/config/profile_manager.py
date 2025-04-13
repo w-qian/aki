@@ -11,7 +11,6 @@ from aki.tools import create_think_tool
 from ..tools.code_analyzer.code_analyzer import create_code_analyzer_tool
 from ..tools.file_management.toolkit import FileManagementToolkit
 from ..tools.command_executor import create_shell_command_tool
-from ..tools.browser_control import create_browser_action_tool
 from ..tools.render_html import create_render_html_tool
 from ..tools.tasklist_manager import create_tasklist_tool
 from ..tools.time import create_datetime_now_tool
@@ -57,7 +56,6 @@ class ProfileManager:
             "file_management_readonly": file_toolkit.get_read_only_tools,
             # Individual tools
             "shell_command": create_shell_command_tool,
-            "browser_action": create_browser_action_tool,
             "render_html": create_render_html_tool,
             "code_analyzer": create_code_analyzer_tool,
             "web_search": create_web_search_tool,
