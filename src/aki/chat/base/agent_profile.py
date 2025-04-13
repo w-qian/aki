@@ -270,36 +270,6 @@ class AgentProfile(BaseProfile):
         # Return only human messages and the last AI message
         return [result] + delete_messages
 
-    def _get_llm_cache_key(
-        self,
-        model_name: str,
-        reasoning_config: Optional[Dict] = None,
-        temperature: float = 0.6,
-        enable_prompt_cache: bool = True,
-    ) -> str:
-        """Generate unique cache key for LLM instance.
-
-        Args:
-            model_name: Name of the model
-            reasoning_config: Optional dictionary containing reasoning settings
-            temperature: Temperature setting for the model (0.0-1.0)
-            enable_prompt_cache: Whether prompt caching is enabled
-
-        Returns:
-            str: Cache key for the LLM instance
-        """
-        # Round temperature to 1 decimal place for more practical caching
-        rounded_temp = round(float(temperature), 1)
-
-        # Build the cache key with model, temperature, and cache setting
-        key = f"{self.profile_name}:{model_name}:temp_{rounded_temp}:cache_{enable_prompt_cache}"
-
-        # Add reasoning configuration if enabled
-        if reasoning_config and reasoning_config.get("enable"):
-            key = f"{key}:reasoning:{reasoning_config['budget_tokens']}"
-
-        return key
-
     def _get_reasoning_config(
         self, model_name: str, state: Optional[Dict] = None
     ) -> Dict:
@@ -366,22 +336,6 @@ class AgentProfile(BaseProfile):
 
         # Get reasoning configuration
         reasoning_config = self._get_reasoning_config(model_id, state)
-
-        # Get the temperature and prompt cache settings from state
-        temperature = float(state.get("temperature", 0.6))
-        enable_cache = state.get("enable_prompt_cache", True)
-        cache_key = self._get_llm_cache_key(
-            model_id,
-            reasoning_config,
-            temperature=temperature,
-            enable_prompt_cache=enable_cache,
-        )
-
-        # Return cached instance if available
-        if cache_key in self._llm_cache:
-            logging.debug(f"Using cached LLM instance: {cache_key}")
-            return self._llm_cache[cache_key]
-
         # Create model with reasoning settings if enabled
         kwargs = {}
         if reasoning_config["enable"]:
@@ -430,8 +384,6 @@ class AgentProfile(BaseProfile):
             temperature=temperature,
             **kwargs,
         )
-
-        self._llm_cache[cache_key] = llm
         return llm
 
     async def chat_node(self, state: AgentState, config: RunnableConfig) -> AgentState:
