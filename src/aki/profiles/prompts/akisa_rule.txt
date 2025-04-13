@@ -1,0 +1,16 @@
+<mermaid_diagram>
+<style>
+  - ONLY for graph diagrams:
+    - Use `linkStyle default stroke:lightgrey,stroke-width:1.5px,color:darkgrey;`
+    - Use 24px for node text, and use 22px and aliceblue background for arrow text
+      <example>llmFactory[<div style='font-size:24px'>llmFactory</div>]</example>
+      <example>Agent -->|<div style='font-size:22px; background-color:aliceblue'>uses</div>| Tool</example>
+
+  - ONLY for sequence diagrams:
+    - begin with `%%{init: {'fontSize': 24}}%%`
+    - `box white
+      participant ParticipantA
+      participant ParticipantB
+      end`
+</style>
+</mermaid_diagram>

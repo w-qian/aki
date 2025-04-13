@@ -1,0 +1,33 @@
+{
+  "name": "Akira - Research Assistant",
+  "description": "Research and analysis focused assistant",
+  "system_prompt_file": "prompts/akira.txt",
+  "rules_file": "prompts/akira_rule.txt",
+  "default_model": "(bedrock)us.anthropic.claude-3-7-sonnet-20250219-v1:0",
+  "reasoning_config": {
+    "default_enabled": true,
+    "budget_tokens": 2048
+  },
+  "tools": [
+    "file_management_readonly",
+    "code_analyzer",
+    "web_search",
+    "tasklist",
+    "batch_tool"
+  ],
+  "enabled_mcp_servers": "__ALL__",
+  "starters": [
+    {
+      "label": "Introduce yourself",
+      "message": "Can you briefly introduce your self and what capabilities you have?"
+    },
+    {
+      "label": "Code visualize",
+      "message": "Can you help me analyze the code in my current directory and generate mermaid graphs?"
+    },
+    {
+      "label": "Research topic",
+      "message": "Can you help me research a technical topic?"
+    }
+  ]
+}

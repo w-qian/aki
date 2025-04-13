@@ -1,0 +1,34 @@
+{
+  "name": "Akisa - Software Engineer",
+  "description": "Your software engineer",
+  "system_prompt_file": "prompts/akisa.txt",
+  "rules_file": "prompts/akisa_rule.txt",
+  "default_model": "(bedrock)us.anthropic.claude-3-7-sonnet-20250219-v1:0",
+  "reasoning_config": {
+    "default_enabled": false,
+    "budget_tokens": 1024
+  },
+  "tools": [
+    "file_management_full",
+    "shell_command",
+    "code_analyzer",
+    "tasklist",
+    "process_manager",
+    "batch_tool"
+  ],
+  "enabled_mcp_servers": "__ALL__",
+  "starters": [
+    {
+      "label": "Introduce yourself",
+      "message": "Can you briefly introduce your self and what capabilities you have?"
+    },
+    {
+      "label": "File operations",
+      "message": "Can you help me with file management tasks?"
+    },
+    {
+      "label": "Shell commands",
+      "message": "Can you help me execute some shell commands?"
+    }
+  ]
+}
