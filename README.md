@@ -3,10 +3,38 @@
 Aki is a highly customizable AI assistant that adapts to your unique workflow. 
 
 ## Features
-More features coming soon!
+
+Aki provides a rich set of features designed to enhance AI assistant capabilities:
+
+### AI Assistant Profiles
+- **Aki**: General-purpose AI assistant for SDEs - handles all tasks with full access to tools
+- **Akira**: Research-focused assistant specialized in information retrieval and analysis
+- **Akisa**: Software engineering assistant focused on coding tasks and development workflows
+
+### LLM Integration
+- **Bedrock**: Seamless integration with Bedrock models
+- **Ollama**: Support for running local models via Ollama
+- **Customizable providers**: Extensible architecture for adding new LLM providers
 
 ### Toolsets
 - **Web Search Tool**: Easily integrate web search capabilities using DuckDuckGo or Google Serper API
+- **Code Analyzer**: Parse and understand repository structure with language-specific analysis
+- **Process Manager**: Control long-running processes and services with monitoring capabilities
+- **Task Management**: Create and track multi-step tasks with status tracking
+- **File Operations**: Comprehensive file management with security constraints
+- **Python Execution**: Execute Python code snippets directly in conversations
+- **Shell Commands**: Run system commands from within the assistant interface
+- **Batch Tool**: Combine multiple tool operations efficiently
+- **HTML Rendering**: Display rich content and interactive elements
+
+### Database System
+- **SQLite**: Default lightweight database for storing conversations and state
+- **PostgreSQL**: Optional robust database for production environments
+
+### Architecture
+- **LangGraph**: Built on LangGraph for powerful agent workflows
+- **MCP Integration**: Model Context Protocol support for external system connections
+- **Chainlit UI**: Modern, responsive chat interface
 
 ## Getting started
 
@@ -39,6 +67,16 @@ aki
 
 ## Configuration
 
+### LLM Configuration
+
+#### Bedrock
+
+To use Bedrock, set the following environment variables: create a AWS profile named `aki` with permission to access models.
+
+#### Ollama
+
+To use Ollama, ensure the Ollama service is running locally. Aki will automatically detect supported models.
+
 ### Google Serper API
 
 To use Google Serper API (offers better search results), set the SERPER_API_KEY environment variable:
@@ -50,6 +88,30 @@ export SERPER_API_KEY="your-api-key"
 If the API key is not available, the tool automatically falls back to using DuckDuckGo search.
 
 ## Development
+
+### Project Structure
+
+Aki is organized into several key modules:
+
+```
+aki/
+├── app.py                # Main application entry point
+├── config/               # Configuration management
+├── chat/                 # Chat system components
+│   ├── base/             # Base profile classes
+│   ├── graph/            # LangGraph agent definitions
+│   └── implementations/  # Specific agent implementations
+├── llm/                  # LLM provider integration
+│   └── providers/        # LLM provider implementations
+├── persistence/          # Database and state management
+├── profiles/             # AI assistant profile definitions
+│   └── prompts/          # System prompts for profiles
+├── public/               # UI assets and components
+└── tools/                # Tool implementations
+    ├── code_analyzer/    # Code analysis tools
+    ├── file_management/  # File operation tools
+    └── mcp/              # MCP integration
+```
 
 ### Setting Up Development Environment
 
@@ -77,6 +139,29 @@ uv sync --extra dev
 Add new dependencies
 ```bash
 uv add new-dependency-name
+```
+
+### Creating Custom Profiles
+
+You can create custom AI assistant profiles by adding JSON configuration files to the `profiles` directory:
+
+```json
+{
+  "name": "Your Assistant Name",
+  "description": "Description of your assistant",
+  "system_prompt_file": "prompts/your_prompt.txt",
+  "tools": [
+    "file_management_readonly",
+    "web_search",
+    "code_analyzer",
+    "tasklist"
+  ],
+  "default_model": "(bedrock)anthropic.claude-3-sonnet-20240229-v1:0",
+  "reasoning_config": {
+    "default_enabled": true,
+    "budget_tokens": 2048
+  }
+}
 ```
 
 
