@@ -9,7 +9,7 @@ import logging
 import os
 from aki.config import constants
 from aki.tools.mcp.check_server import check_servers
-from aki.config.paths import get_aki_home, get_env_file
+from aki.config.paths import get_aki_home, get_env_file, get_default_mcp_settings_path
 from dotenv import load_dotenv
 
 logger = logging.getLogger("aki-install")
@@ -116,9 +116,7 @@ def initialize_aki():
 
     # Initialize server status and run MCP initialization in a separate thread with timeout
     server_status = {"initialized_servers": {}}
-    default_settings_path = (
-        Path(__file__).parent / "config" / "mcp_settings.default.json"
-    )
+    default_settings_path = get_default_mcp_settings_path()
 
     if not default_settings_path.exists():
         logger.error(f"Default MCP settings not found at {default_settings_path}")

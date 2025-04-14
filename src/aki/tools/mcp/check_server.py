@@ -11,7 +11,7 @@ from typing import Dict, Optional
 from aki.tools.mcp.client import McpClientManager
 from aki.config.constants import MCP_SERVERS_KEY
 from aki.tools.mcp.installation.manager import InstallationManager
-from aki.config.paths import get_aki_home
+from aki.config.paths import get_aki_home, get_default_mcp_settings_path
 
 # Global settings
 SKIP_MCP_INSTALL = os.environ.get("SKIP_MCP_INSTALL", "").lower() in (
@@ -326,11 +326,7 @@ def check_servers(config_path: Optional[Path] = None) -> bool:
     try:
 
         if config_path is None:
-            config_path = (
-                Path(__file__).parent.parent.parent
-                / "config"
-                / "mcp_settings.default.json"
-            )
+            config_path = get_default_mcp_settings_path()
 
         logger.debug(f"Starting MCP server checks with config: {config_path}")
         logger.debug(f"Current working directory: {Path.cwd()}")

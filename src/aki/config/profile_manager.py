@@ -18,7 +18,7 @@ from ..tools.time import create_datetime_now_tool
 from ..tools.mcp import create_mcp_tools_sync
 from ..tools.code_executor import create_execute_python_tool
 from ..tools.process_manager import create_process_manager_tool
-from .paths import get_aki_home
+from .paths import get_aki_home, get_default_mcp_settings_path
 
 logger = logging.getLogger(__name__)
 
@@ -171,7 +171,7 @@ class ProfileManager:
         mcp_settings = {"mcpServers": {}}
 
         # Load default settings
-        default_path = self.package_dir / "config" / "mcp_settings.default.json"
+        default_path = get_default_mcp_settings_path()
         if default_path.exists():
             try:
                 with open(default_path) as f:
