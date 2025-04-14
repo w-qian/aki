@@ -168,24 +168,24 @@ class ServerChecker:
                 logger.error(f"[{name}] Failed to initialize client: {str(e)}")
                 return False
 
-            # Test tool listing
-            try:
-                logger.debug(
-                    f"[{name}] Testing server connection by listing tools (timeout: 5s)..."
-                )
-                # Add a 5-second timeout for the list_tools call
-                tools = await asyncio.wait_for(client.list_tools(), timeout=5)
-                logger.debug(f"[{name}] Successfully listed {len(tools)} tools")
-                for tool in tools:
-                    logger.debug(f"[{name}] Available tool: {tool['name']}")
-                return True
-            except asyncio.TimeoutError:
-                logger.error(f"[{name}] Connection timed out after 5s")
-                return False
-            except Exception as e:
-                logger.error(f"[{name}] Failed to list tools: {str(e)}")
-                logger.debug(f"[{name}] Tool listing error details:", exc_info=True)
-                return False
+            # # Test tool listing
+            # try:
+            #     logger.debug(
+            #         f"[{name}] Testing server connection by listing tools (timeout: 5s)..."
+            #     )
+            #     # Add a 5-second timeout for the list_tools call
+            #     tools = await asyncio.wait_for(client.list_tools(), timeout=5)
+            #     logger.debug(f"[{name}] Successfully listed {len(tools)} tools")
+            #     for tool in tools:
+            #         logger.debug(f"[{name}] Available tool: {tool['name']}")
+            #     return True
+            # except asyncio.TimeoutError:
+            #     logger.error(f"[{name}] Connection timed out after 5s")
+            #     return False
+            # except Exception as e:
+            #     logger.error(f"[{name}] Failed to list tools: {str(e)}")
+            #     logger.debug(f"[{name}] Tool listing error details:", exc_info=True)
+            #     return False
 
         except Exception as e:
             logger.error(f"[{name}] Server check failed with error: {str(e)}")

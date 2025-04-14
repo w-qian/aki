@@ -57,8 +57,8 @@ class ChainlitCallback(AsyncCallbackHandler):
         try:
             return ast.literal_eval(input_data)
         except (SyntaxError, ValueError) as e:
-            logger.warning(f"{log_prefix}Python literal parsing failed: {str(e)}")
-            return None
+            logger.debug(f"{log_prefix}Python literal parsing failed: {str(e)}")
+            return str(input_data)
 
     @staticmethod
     def _modify_batch_tool_name(tool_input):
