@@ -1,15 +1,12 @@
 """Initialize Aki configuration and services."""
 
-import json
 import shutil
 import sys
-import threading
 from pathlib import Path
 import logging
 import os
 from aki.config import constants
-from aki.tools.mcp.check_server import check_servers
-from aki.config.paths import get_aki_home, get_env_file, get_default_mcp_settings_path
+from aki.config.paths import get_aki_home, get_env_file
 from dotenv import load_dotenv
 
 logger = logging.getLogger("aki-install")

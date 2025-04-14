@@ -26,10 +26,10 @@ def get_env_file() -> Path:
 
 def get_default_mcp_settings_path() -> Path:
     """Get the path to the default MCP settings file.
-    
+
     First checks if the file exists in aki_home, then falls back to the package dir.
     No file copying is performed.
-    
+
     Returns:
         Path to the mcp_settings.default.json file
     """
@@ -37,7 +37,7 @@ def get_default_mcp_settings_path() -> Path:
     user_default_path = get_aki_home() / "mcp_settings.default.json"
     if user_default_path.exists():
         return user_default_path
-    
+
     # Fallback to the package directory (relative to this file)
     package_path = Path(__file__).parent / "mcp_settings.default.json"
     return package_path

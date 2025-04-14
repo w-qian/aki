@@ -30,7 +30,7 @@ class ProfileManager:
     _initialized = False
 
     BUILTIN_PROFILES = {"aki", "akira", "akisa"}
-    BUILTIN_PROFILES_PATH_ENV_VAR = "AKI_BUILTIN_PROFILES_PATH"  
+    BUILTIN_PROFILES_PATH_ENV_VAR = "AKI_BUILTIN_PROFILES_PATH"
 
     def __new__(cls):
         if cls._instance is None:
@@ -44,12 +44,12 @@ class ProfileManager:
             self.registry = ProfileRegistry()
             self.config_dir = get_aki_home()
             self.package_dir = Path(__file__).parent.parent
-            self.builtin_profiles_dir = self._get_builtin_profiles_dir() 
+            self.builtin_profiles_dir = self._get_builtin_profiles_dir()
             self.profiles = {}
             self._tool_factories = self._init_tool_factories()
             self._load_profiles()
             ProfileManager._initialized = True
-    
+
     def _get_builtin_profiles_dir(self) -> Path:
         """Get the directory containing built-in profiles."""
         # Check environment variable first
@@ -57,23 +57,25 @@ class ProfileManager:
         if custom_dir and os.path.isdir(custom_dir):
             logger.info(f"Using custom built-in profiles directory: {custom_dir}")
             return Path(custom_dir)
-        
+
         # Default to package directory
         return self.package_dir / "profiles"
-    
+
     def set_builtin_profiles_dir(self, directory_path: str) -> None:
         """Set the directory containing built-in profiles.
-        
+
         Args:
             directory_path: Path to directory containing built-in profile files
-            
+
         Raises:
             ValueError: If directory doesn't exist
         """
         path = Path(directory_path)
         if not path.is_dir():
-            raise ValueError(f"Built-in profiles directory does not exist: {directory_path}")
-        
+            raise ValueError(
+                f"Built-in profiles directory does not exist: {directory_path}"
+            )
+
         self.builtin_profiles_dir = path
         # Reload profiles
         self._load_profiles()
@@ -100,10 +102,10 @@ class ProfileManager:
     def _load_profiles(self):
         """Load all available profiles."""
         logger.debug("Starting to load profiles")
-        
+
         # Reset profiles dict for reloading
         self.profiles = {}
-        
+
         # Load built-in agent profiles
         # Modified to use self.builtin_profiles_dir instead of self.package_dir / "profiles"
         logger.debug(f"Loading profiles from: {self.builtin_profiles_dir}")
