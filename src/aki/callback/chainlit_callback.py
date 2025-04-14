@@ -263,6 +263,7 @@ class ChainlitCallback(AsyncCallbackHandler):
         self.current_context_stack = (
             []
         )  # Track context stack for proper step sequencing
+        self.creating_thinking_task = False  # Flag to prevent race conditions in thinking step creation
 
     async def _thinking_worker(self):
         """Worker that processes thinking content using context manager"""
@@ -443,21 +444,29 @@ class ChainlitCallback(AsyncCallbackHandler):
             # Process based on content type
             if is_reasoning and extracted_content:
                 # This is reasoning content - handle with thinking step
-                if not self.in_thinking_mode:
-                    # First reasoning token, enter thinking mode
-                    self.in_thinking_mode = True
+                if not self.in_thinking_mode and not self.creating_thinking_task:
+                    try:
+                        # Set flag to prevent other tokens from creating thinking tasks
+                        self.creating_thinking_task = True
+                        
+                        # First reasoning token, enter thinking mode
+                        self.in_thinking_mode = True
 
-                    # If we have a loading message, remove it first
-                    if hasattr(self, "loading_message") and self.loading_message:
-                        await self.loading_message.remove()
-                        self.loading_message = None
+                        # If we have a loading message, remove it first
+                        if hasattr(self, "loading_message") and self.loading_message:
+                            await self.loading_message.remove()
+                            self.loading_message = None
 
-                    # Start thinking worker task with context manager
-                    self.thinking_task = asyncio.create_task(self._thinking_worker())
-                    logger.debug("Started thinking worker task")
+                        # Start thinking worker task with context manager
+                        self.thinking_task = asyncio.create_task(self._thinking_worker())
+                        logger.debug("Started thinking worker task")
+                    finally:
+                        # Always reset the flag to prevent deadlocks
+                        self.creating_thinking_task = False
 
-                # Send content to thinking worker
-                await self.thinking_queue.put(extracted_content)
+                # Send content to thinking worker if in thinking mode and queue exists
+                if self.in_thinking_mode and hasattr(self, "thinking_queue") and self.thinking_queue:
+                    await self.thinking_queue.put(extracted_content)
 
             elif extracted_content:
                 # Regular content - end thinking if active
@@ -487,6 +496,8 @@ class ChainlitCallback(AsyncCallbackHandler):
         except Exception as e:
             logger.error(f"Error in on_llm_new_token: {str(e)}")
             logger.error(f"Detailed traceback: {traceback.format_exc()}")
+            # Reset flag in case of error to prevent deadlocks
+            self.creating_thinking_task = False
 
     async def on_chat_model_start(
         self, serialized: Dict[str, Any], messages: List[List[Any]], **kwargs
