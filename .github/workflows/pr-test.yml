@@ -1,0 +1,41 @@
+name: PR Test with pytest and uv
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  pytest-uv:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4 # docs https://pnpm.io/continuous-integration#github-actions
+        with: 
+          version: 10
+
+      - name: Install uv
+        run: |
+          pip install uv
+
+      - name: Install Dependencies using uv
+        env:
+          NODE_OPTIONS: "--max_old_space_size=4096"
+        run: |
+          uv venv
+          source .venv/bin/activate
+          uv sync --extra dev
+
+      - name: Run Tests with pytest
+        run: |
+          source .venv/bin/activate
+          pytest
