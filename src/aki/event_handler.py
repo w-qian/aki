@@ -376,7 +376,7 @@ class EventHandler:
         except Exception as e:
             error_msg = f"An error occurred: {e!s}."
             logging.error(error_msg, exc_info=True)
-            fix_suggestion = "Please try a new conversation or report the issue to #aki-interest slack channel."
+            fix_suggestion = "Please try a new conversation or report the issue in the github issue tracker."
             await cl.Message(content=f"{error_msg} {fix_suggestion}").send()
 
     def get_or_create_profile(self, chat_profile: str) -> BaseProfile:

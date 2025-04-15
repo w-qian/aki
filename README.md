@@ -71,7 +71,33 @@ aki
 
 #### Bedrock
 
-To use Bedrock, set the following environment variables: create a AWS profile named `aki` with permission to access models.
+To use Amazon Bedrock models, you need to configure AWS credentials. Aki supports two methods:
+
+##### Option 1: Using a `.aki/.env` file
+
+Edit your existing `~/.aki/.env` file and ensure it contains your AWS credentials:
+```
+AWS_ACCESS_KEY_ID=your_access_key_here
+AWS_SECRET_ACCESS_KEY=your_secret_key_here
+AWS_DEFAULT_REGION=us-west-2
+```
+
+This method keeps your AWS credentials isolated to the Aki application.
+
+##### Option 2: Using an AWS profile
+
+1. If you haven't already set up the AWS CLI, install it following the [official instructions](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html).
+
+2. Configure a profile named `aki` with your credentials:
+   ```bash
+   aws configure --profile aki
+   ```
+
+3. Enter your AWS Access Key ID, Secret Access Key, and preferred region when prompted.
+
+This creates entries in your `~/.aws/credentials` and `~/.aws/config` files.
+
+For both options, ensure your AWS credentials have permissions to access the Bedrock models.
 
 #### Ollama
 
