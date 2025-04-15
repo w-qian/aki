@@ -10,7 +10,7 @@ readme = "README.md"
 requires-python = ">=3.12"
 license = "MIT"
 dependencies = [
-    "chainlit @ git+https://github.com/Aki-community/chainlit.git@main#subdirectory=backend",
+    "chainlit==2.5.5",
     "langchain==0.3.18",
     "langgraph==0.3.16",
     "langchain_community==0.3.17",

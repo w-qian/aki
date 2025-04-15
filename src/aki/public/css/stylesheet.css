@@ -1,0 +1,143 @@
+/* Mermaid diagram styling */
+.mermaid {
+  position: relative;
+  overflow: visible !important;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  background-color: white;
+  border-radius: 6px;
+  padding: 8px;
+}
+
+.mermaid svg {
+  display: block;
+  margin: 0 auto;
+  max-width: 100% !important;
+  height: auto !important; /* Allow height to adjust automatically */
+  min-height: 100px; /* Ensure minimum height */
+  font-size: calc(12px + 0.2vw); /* Responsive base font size */
+}
+
+/* Fix for proper diagram height rendering - more adaptable to content size */
+.mermaid > svg {
+  width: 100%;
+  height: 100% !important;
+  min-height: 150px;  /* Reduced min-height for smaller diagrams */
+}
+
+/* Ensure text in diagrams is always readable */
+.mermaid text {
+  font-size: inherit; /* Inherit from parent setting */
+  font-family: Arial, sans-serif;
+}
+
+/* Height classes based on content complexity */
+.mermaid.small-diagram > svg {
+  min-height: 100px;
+  max-height: 200px;
+}
+
+.mermaid.medium-diagram > svg {
+  min-height: 200px;
+  max-height: 400px;
+}
+
+.mermaid.large-diagram > svg {
+  min-height: 300px;
+}
+
+/* Popup mode styles */
+.mermaid-popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  overflow: auto;
+  padding: 0; /* Remove padding to allow content to center better */
+}
+
+.mermaid-popup-content {
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  width: 90%; /* Adjusted width */
+  height: 90%; /* Match height to maintain aspect ratio */
+  min-height: 600px; /* Increased minimum height */
+  min-width: 800px; /* Increased minimum width */
+  max-width: 1600px; /* Added maximum width */
+  overflow: auto;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  position: relative;
+  margin: 0; /* Reset margin */
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Center items horizontally */
+  justify-content: center; /* Center items vertically */
+}
+
+.mermaid-popup-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 24px;
+  cursor: pointer;
+  color: #555;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background-color: rgba(255, 255, 255, 0.6);
+  z-index: 10;
+}
+
+/* Style for diagrams that are still being generated */
+.mermaid-error-note {
+  background-color: rgba(255, 255, 255, 0.9);
+  border-left: 3px solid #e74c3c;
+  margin-bottom: 8px;
+}
+
+/* Zoom and expand controls container */
+.zoom-controls {
+  opacity: 0;
+  transition: opacity 0.2s;
+  position: absolute; 
+  top: 8px; 
+  right: 8px; 
+  background: rgba(255,255,255,0.7); 
+  border-radius: 4px; 
+  padding: 4px; 
+  display: flex; 
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  z-index: 100;
+}
+
+.mermaid:hover .zoom-controls {
+  opacity: 1;
+}
+
+/* Common style for all buttons in the zoom controls */
+.zoom-controls button {
+  margin: 0 2px; 
+  cursor: pointer; 
+  border: none; 
+  background: none; 
+  font-size: 16px;
+  padding: 4px;
+  border-radius: 3px;
+  color: #24292e;
+  transition: background-color 0.2s;
+}
+
+.zoom-controls button:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+/* Specific style for expand button - now integrated in zoom controls */
+.zoom-controls button.expand-button {
+  /* Any specific styling for the expand button if needed */
+}
