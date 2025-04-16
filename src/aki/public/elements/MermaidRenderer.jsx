@@ -5,13 +5,46 @@ export default function MermaidRenderer() {
   const containerRef = useRef(null);
   const [zoomLevel, setZoomLevel] = useState(1.0);
   const [error, setError] = useState(null);
+  const [svgDimensions, setSvgDimensions] = useState({ width: 0, height: 0 });
+  const [isDarkTheme, setIsDarkTheme] = useState(false);
+  
+  // Check for dark theme preference
+  useEffect(() => {
+    // Check if document has a dark class or prefers-color-scheme
+    const checkDarkTheme = () => {
+      const hasDarkClass = document.documentElement.classList.contains('dark');
+      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      setIsDarkTheme(hasDarkClass || prefersDark);
+    };
+    
+    checkDarkTheme();
+    
+    // Listen for theme changes
+    const mediaQuery = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
+    if (mediaQuery?.addEventListener) {
+      mediaQuery.addEventListener('change', checkDarkTheme);
+      return () => mediaQuery.removeEventListener('change', checkDarkTheme);
+    }
+  }, []);
+  
+  // Theme colors
+  const colors = {
+    background: isDarkTheme ? '#1e1e2e' : '#ffffff',
+    backgroundSecondary: isDarkTheme ? '#313244' : '#f1f5f9',
+    border: isDarkTheme ? '#45475a' : '#e2e8f0',
+    text: isDarkTheme ? '#cdd6f4' : '#1e293b',
+    textSecondary: isDarkTheme ? '#bac2de' : '#475569',
+    accent: isDarkTheme ? '#89b4fa' : '#3b82f6',
+    error: isDarkTheme ? '#f38ba8' : '#ef4444',
+  };
   
   // Style definitions
   const styles = {
     // Main container styles
     container: {
       width: '100%',
-      maxWidth: '900px'
+      maxWidth: '900px',
+      color: colors.text
     },
     
     // Zoom controls container
@@ -24,11 +57,12 @@ export default function MermaidRenderer() {
     
     // Button styles
     button: {
-      background: '#f1f5f9',
-      border: '1px solid #cbd5e1',
+      background: colors.backgroundSecondary,
+      border: `1px solid ${colors.border}`,
       borderRadius: '4px',
       padding: '4px 8px',
-      cursor: 'pointer'
+      cursor: 'pointer',
+      color: colors.text
     },
     
     // Icon button variations
@@ -46,32 +80,39 @@ export default function MermaidRenderer() {
     // Diagram container
     diagramContainer: {
       width: '100%',
-      border: '1px solid #e2e8f0',
+      border: `1px solid ${colors.border}`,
       borderRadius: '4px',
       padding: '1rem',
-      position: 'relative'
+      position: 'relative',
+      background: colors.background
     },
     
     // Scroll area
     scrollArea: {
       width: '100%',
-      height: '100%',
+      height: '400px',
       overflow: 'auto'
     },
     
     // Error message
     errorMessage: {
-      color: 'red',
+      color: colors.error,
       padding: '1rem'
     },
     
-    // Dynamic styles based on zoom level
-    getDiagramStyles: (zoom) => ({
-      transform: `scale(${zoom})`,
-      transformOrigin: 'top left',
-      width: 'max-content',
-      minWidth: '100%'
-    })
+    // Content container - now dynamically sized based on SVG and zoom
+    getContentContainerStyles: (svgWidth, svgHeight, zoom) => ({
+      width: svgWidth * zoom > 0 ? svgWidth * zoom : 'auto',
+      height: svgHeight * zoom > 0 ? svgHeight * zoom : 'auto',
+      position: 'relative',
+      overflow: 'visible' // Important to show all content when zoomed
+    }),
+    
+    // SVG container
+    svgContainer: {
+      position: 'relative', 
+      overflow: 'visible'
+    }
   };
   
   // Function to handle zoom in
@@ -87,6 +128,144 @@ export default function MermaidRenderer() {
   // Function to reset zoom
   const handleResetZoom = () => {
     setZoomLevel(1.0);
+  };
+  
+  // Function to get original SVG dimensions
+  const updateSvgDimensions = () => {
+    if (!containerRef.current) return;
+    
+    const svgElement = containerRef.current.querySelector('svg');
+    if (!svgElement) return;
+    
+    // Get dimensions from SVG or calculate from viewBox
+    let width = parseFloat(svgElement.getAttribute('width')) || 0;
+    let height = parseFloat(svgElement.getAttribute('height')) || 0;
+    
+    // If dimensions are not set directly, try to get from viewBox
+    if (width === 0 || height === 0) {
+      const viewBox = svgElement.getAttribute('viewBox');
+      if (viewBox) {
+        const [,, vbWidth, vbHeight] = viewBox.split(' ').map(Number);
+        width = vbWidth || width;
+        height = vbHeight || height;
+      }
+    }
+    
+    // If we got some dimensions, save them
+    if (width > 0 && height > 0) {
+      // Store the original dimensions as data attributes if not already stored
+      if (!svgElement.hasAttribute('data-original-width')) {
+        svgElement.setAttribute('data-original-width', width);
+        svgElement.setAttribute('data-original-height', height);
+      }
+      
+      setSvgDimensions({ width, height });
+    }
+  };
+  
+  // Apply dark theme to SVG elements
+  const applyThemeToSvg = () => {
+    if (!containerRef.current) return;
+    
+    const svgElement = containerRef.current.querySelector('svg');
+    if (!svgElement) return;
+    
+    if (isDarkTheme) {
+      // Apply dark theme to SVG
+      svgElement.style.filter = 'invert(0.85) hue-rotate(180deg)';
+      
+      // Add background fill for better visibility in dark mode
+      if (!svgElement.querySelector('rect.mermaid-bg')) {
+        const bg = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+        bg.setAttribute('width', '100%');
+        bg.setAttribute('height', '100%');
+        bg.setAttribute('fill', colors.background);
+        bg.setAttribute('class', 'mermaid-bg');
+        svgElement.insertBefore(bg, svgElement.firstChild);
+      }
+    } else {
+      // Remove dark theme styling
+      svgElement.style.filter = 'none';
+      
+      // Remove background if it exists
+      const bg = svgElement.querySelector('rect.mermaid-bg');
+      if (bg) {
+        bg.remove();
+      }
+    }
+  };
+  
+  // Function to apply zoom to SVG elements
+  const applyZoomToSvg = () => {
+    if (!containerRef.current) return;
+    
+    // Find the SVG element inside the container
+    const svgElement = containerRef.current.querySelector('svg');
+    if (!svgElement) {
+      console.log('No SVG element found to zoom');
+      return;
+    }
+    
+    // Get the original dimensions
+    const originalWidth = parseFloat(svgElement.getAttribute('data-original-width')) || 
+                          parseFloat(svgElement.getAttribute('width')) || 
+                          svgDimensions.width;
+                          
+    const originalHeight = parseFloat(svgElement.getAttribute('data-original-height')) || 
+                           parseFloat(svgElement.getAttribute('height')) || 
+                           svgDimensions.height;
+    
+    // Apply explicit dimensions to the SVG based on zoom
+    if (originalWidth > 0) {
+      const scaledWidth = originalWidth * zoomLevel;
+      svgElement.setAttribute('width', scaledWidth);
+    }
+    
+    if (originalHeight > 0) {
+      const scaledHeight = originalHeight * zoomLevel;
+      svgElement.setAttribute('height', scaledHeight);
+    }
+    
+    // Scale font size for all text elements
+    const textElements = svgElement.querySelectorAll('text');
+    textElements.forEach(textElement => {
+      const originalFontSize = textElement.getAttribute('data-original-font-size') || 
+                              textElement.getAttribute('font-size') || 
+                              window.getComputedStyle(textElement).fontSize;
+      
+      // Store original font size if not already stored
+      if (!textElement.getAttribute('data-original-font-size')) {
+        textElement.setAttribute('data-original-font-size', originalFontSize);
+      }
+      
+      // Extract the numeric part of the font size
+      const fontSize = parseFloat(originalFontSize);
+      if (!isNaN(fontSize)) {
+        const scaledFontSize = fontSize * zoomLevel;
+        textElement.setAttribute('font-size', `${scaledFontSize}px`);
+      }
+    });
+    
+    // Also scale other elements that might contain text or have size attributes
+    const scalableElements = svgElement.querySelectorAll('rect, circle, ellipse, line, polyline, polygon, path');
+    scalableElements.forEach(element => {
+      // Store original stroke-width if not already stored
+      const originalStrokeWidth = element.getAttribute('data-original-stroke-width') || 
+                                 element.getAttribute('stroke-width');
+                                 
+      if (originalStrokeWidth && !element.getAttribute('data-original-stroke-width')) {
+        element.setAttribute('data-original-stroke-width', originalStrokeWidth);
+      }
+      
+      // Scale stroke-width if present
+      if (originalStrokeWidth) {
+        const strokeWidth = parseFloat(originalStrokeWidth);
+        if (!isNaN(strokeWidth)) {
+          const scaledStrokeWidth = strokeWidth * zoomLevel;
+          element.setAttribute('stroke-width', scaledStrokeWidth);
+        }
+      }
+    });
   };
   
   // Function to render mermaid diagram
@@ -121,7 +300,17 @@ export default function MermaidRenderer() {
     }
 
     renderWithCode(mermaidCode);
+  }, []);
+
+  // Apply zoom when zoom level changes
+  useEffect(() => {
+    applyZoomToSvg();
   }, [zoomLevel]);
+  
+  // Apply theme changes when theme changes
+  useEffect(() => {
+    applyThemeToSvg();
+  }, [isDarkTheme]);
 
   // Function to render with provided code
   const renderWithCode = (code) => {
@@ -161,7 +350,7 @@ export default function MermaidRenderer() {
       // Configure mermaid
       mermaid.initialize({
         startOnLoad: false,  // We'll manually initialize
-        theme: 'default',
+        theme: isDarkTheme ? 'dark' : 'default',
         securityLevel: 'loose',
       });
       
@@ -171,7 +360,16 @@ export default function MermaidRenderer() {
       diagramContainer.textContent = code;
       containerRef.current.appendChild(diagramContainer);
       
+      console.log('Initializing mermaid diagram');
       mermaid.init(undefined, diagramContainer);
+      console.log('Mermaid initialization complete');
+      
+      // Get SVG dimensions after rendering
+      setTimeout(() => {
+        updateSvgDimensions();
+        applyZoomToSvg();
+        applyThemeToSvg();
+      }, 100);
     } catch (err) {
       console.error('Mermaid rendering error:', err);
       setError(`Mermaid rendering error: ${err.message}`);
@@ -217,9 +415,9 @@ export default function MermaidRenderer() {
             </div>
           )}
           
-          {/* Diagram container */}
-          <div style={styles.getDiagramStyles(zoomLevel)}>
-            <div ref={containerRef} />
+          {/* Dynamic content container based on SVG dimensions and zoom */}
+          <div style={styles.getContentContainerStyles(svgDimensions.width, svgDimensions.height, zoomLevel)}>
+            <div ref={containerRef} style={styles.svgContainer} />
           </div>
           <ScrollBar orientation="horizontal" />
         </ScrollArea>
