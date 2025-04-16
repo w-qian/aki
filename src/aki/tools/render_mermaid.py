@@ -1,6 +1,6 @@
 import chainlit as cl
 from langchain.tools import BaseTool
-from typing import Optional, Dict, Any, Tuple
+from typing import Dict, Any
 from pydantic import BaseModel, Field
 import asyncio
 
@@ -8,9 +8,7 @@ import asyncio
 class RenderMermaidInput(BaseModel):
     """Input for rendering Mermaid diagram content."""
 
-    mermaid_code: str = Field(
-        description="Mermaid diagram code to render"
-    )
+    mermaid_code: str = Field(description="Mermaid diagram code to render")
 
 
 class RenderMermaidTool(BaseTool):
@@ -32,23 +30,23 @@ class RenderMermaidTool(BaseTool):
 
             error_event = asyncio.Event()
             error_msg = [None]
-            
+
             # Function to handle element updates from the renderer
             async def on_element_update(update_data: Dict[str, Any]):
                 if "syntaxError" in update_data:
                     error_msg[0] = update_data["syntaxError"]
                     error_event.set()
-            
+
             # Create and send Mermaid element
             element = cl.CustomElement(
                 name="MermaidRenderer",
                 props={"mermaidCode": mermaid_code},
                 display="inline",
-                on_update=on_element_update
+                on_update=on_element_update,
             )
-            
+
             await cl.Message(content="", elements=[element]).send()
-            
+
             # Wait briefly for potential syntax errors from frontend (max 2 seconds)
             try:
                 await asyncio.wait_for(error_event.wait(), timeout=2.0)
