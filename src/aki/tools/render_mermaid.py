@@ -1,6 +1,6 @@
 import chainlit as cl
 from langchain.tools import BaseTool
-from typing import Optional, Dict, Any, Tuple
+from typing import Dict, Any
 from pydantic import BaseModel, Field
 import asyncio
 
@@ -8,9 +8,7 @@ import asyncio
 class RenderMermaidInput(BaseModel):
     """Input for rendering Mermaid diagram content."""
 
-    mermaid_code: str = Field(
-        description="Mermaid diagram code to render"
-    )
+    mermaid_code: str = Field(description="Mermaid diagram code to render")
 
 
 class RenderMermaidTool(BaseTool):
