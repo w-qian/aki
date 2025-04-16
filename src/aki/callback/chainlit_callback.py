@@ -263,7 +263,9 @@ class ChainlitCallback(AsyncCallbackHandler):
         self.current_context_stack = (
             []
         )  # Track context stack for proper step sequencing
-        self.creating_thinking_task = False  # Flag to prevent race conditions in thinking step creation
+        self.creating_thinking_task = (
+            False  # Flag to prevent race conditions in thinking step creation
+        )
 
     async def _thinking_worker(self):
         """Worker that processes thinking content using context manager"""
@@ -448,7 +450,7 @@ class ChainlitCallback(AsyncCallbackHandler):
                     try:
                         # Set flag to prevent other tokens from creating thinking tasks
                         self.creating_thinking_task = True
-                        
+
                         # First reasoning token, enter thinking mode
                         self.in_thinking_mode = True
 
@@ -458,14 +460,20 @@ class ChainlitCallback(AsyncCallbackHandler):
                             self.loading_message = None
 
                         # Start thinking worker task with context manager
-                        self.thinking_task = asyncio.create_task(self._thinking_worker())
+                        self.thinking_task = asyncio.create_task(
+                            self._thinking_worker()
+                        )
                         logger.debug("Started thinking worker task")
                     finally:
                         # Always reset the flag to prevent deadlocks
                         self.creating_thinking_task = False
 
                 # Send content to thinking worker if in thinking mode and queue exists
-                if self.in_thinking_mode and hasattr(self, "thinking_queue") and self.thinking_queue:
+                if (
+                    self.in_thinking_mode
+                    and hasattr(self, "thinking_queue")
+                    and self.thinking_queue
+                ):
                     await self.thinking_queue.put(extracted_content)
 
             elif extracted_content:
