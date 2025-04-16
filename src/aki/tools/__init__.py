@@ -10,6 +10,7 @@ from .web_search import create_web_search_tool
 from .custom_tool_node import CustomToolNode
 from .batch_tool import BatchTool, create_batch_tool
 from .tool_routing import tool_routing, tool_registry, ToolRegistry
+from .render_mermaid import create_render_mermaid_tool
 
 __all__ = [
     "create_think_tool",
@@ -20,4 +21,5 @@ __all__ = [
     "CustomToolNode",
     "BatchTool",
     "create_batch_tool",
+    "create_render_mermaid_tool",
 ]

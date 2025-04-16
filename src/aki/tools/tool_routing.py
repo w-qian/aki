@@ -12,6 +12,7 @@ from langchain_core.tools import BaseTool
 from langchain_core.messages import ToolMessage
 from .think import create_think_tool
 from .web_search import create_web_search_tool
+from .render_mermaid import create_render_mermaid_tool
 
 
 def tool_routing(state: Dict[str, Any], tools: List[BaseTool]) -> Dict[str, Any]:
@@ -153,3 +154,4 @@ class ToolRegistry:
 tool_registry = ToolRegistry()
 tool_registry.register_tool_factory("think", create_think_tool)
 tool_registry.register_tool_factory("web_search", create_web_search_tool)
+tool_registry.register_tool_factory("render_mermaid", create_render_mermaid_tool)

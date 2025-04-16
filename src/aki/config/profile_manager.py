@@ -18,6 +18,7 @@ from ..tools.time import create_datetime_now_tool
 from ..tools.mcp import create_mcp_tools_sync
 from ..tools.code_executor import create_execute_python_tool
 from ..tools.process_manager import create_process_manager_tool
+from aki.tools.render_mermaid import create_render_mermaid_tool
 from .paths import get_aki_home, get_default_mcp_settings_path
 
 logger = logging.getLogger(__name__)
@@ -97,6 +98,7 @@ class ProfileManager:
             "get_datetime_now": create_datetime_now_tool,
             "process_manager": create_process_manager_tool,
             "think": create_think_tool,
+            "render_mermaid": create_render_mermaid_tool,
         }
 
     def _load_profiles(self):
