@@ -29,15 +29,6 @@ class RenderMermaidTool(BaseTool):
         try:
             if not mermaid_code:
                 raise ValueError("Mermaid code must be provided")
-
-            error_event = asyncio.Event()
-            error_msg = [None]
-            
-            # Function to handle element updates from the renderer
-            async def on_element_update(update_data: Dict[str, Any]):
-                if "syntaxError" in update_data:
-                    error_msg[0] = update_data["syntaxError"]
-                    error_event.set()
             
             # Create and send Mermaid element
             element = cl.CustomElement(
@@ -48,15 +39,6 @@ class RenderMermaidTool(BaseTool):
             )
             
             await cl.Message(content="", elements=[element]).send()
-            
-            # Wait briefly for potential syntax errors from frontend (max 2 seconds)
-            try:
-                await asyncio.wait_for(error_event.wait(), timeout=2.0)
-                if error_msg[0]:
-                    return f"Error in mermaid diagram: {error_msg[0]}"
-            except asyncio.TimeoutError:
-                # No error reported within timeout
-                pass
 
             return "Mermaid diagram rendered successfully"
 

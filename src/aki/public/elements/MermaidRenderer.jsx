@@ -1,25 +1,163 @@
 import { useEffect, useRef, useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { ZoomIn, ZoomOut, Maximize, X } from 'lucide-react';
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area"
 
 export default function MermaidRenderer() {
   const containerRef = useRef(null);
+  const [zoomLevel, setZoomLevel] = useState(1.0);
   const [error, setError] = useState(null);
-  const [zoom, setZoom] = useState(1);
-  const [isPopup, setIsPopup] = useState(false);
+  
+  // Style definitions
+  const styles = {
+    // Main container styles
+    container: {
+      width: '100%',
+      maxWidth: '900px'
+    },
+    
+    // Zoom controls container
+    zoomControls: {
+      display: 'flex',
+      gap: '8px',
+      marginBottom: '8px',
+      justifyContent: 'flex-end'
+    },
+    
+    // Button styles
+    button: {
+      background: '#f1f5f9',
+      border: '1px solid #cbd5e1',
+      borderRadius: '4px',
+      padding: '4px 8px',
+      cursor: 'pointer'
+    },
+    
+    // Icon button variations
+    iconButton: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
+    },
+    
+    // Button icon
+    buttonIcon: {
+      fontSize: '16px'
+    },
+    
+    // Diagram container
+    diagramContainer: {
+      width: '100%',
+      border: '1px solid #e2e8f0',
+      borderRadius: '4px',
+      padding: '1rem',
+      position: 'relative'
+    },
+    
+    // Scroll area
+    scrollArea: {
+      width: '100%',
+      height: '100%',
+      overflow: 'auto'
+    },
+    
+    // Error message
+    errorMessage: {
+      color: 'red',
+      padding: '1rem'
+    },
+    
+    // Dynamic styles based on zoom level
+    getDiagramStyles: (zoom) => ({
+      transform: `scale(${zoom})`,
+      transformOrigin: 'top left',
+      width: 'max-content',
+      minWidth: '100%'
+    })
+  };
+  
+  // Function to handle zoom in
+  const handleZoomIn = () => {
+    setZoomLevel(prevZoom => Math.min(prevZoom + 0.2, 3.0)); // Max zoom 3x
+  };
+  
+  // Function to handle zoom out
+  const handleZoomOut = () => {
+    setZoomLevel(prevZoom => Math.max(prevZoom - 0.2, 0.5)); // Min zoom 0.5x
+  };
+  
+  // Function to reset zoom
+  const handleResetZoom = () => {
+    setZoomLevel(1.0);
+  };
   
   // Function to render mermaid diagram
   useEffect(() => {
-    if (!containerRef.current || !props.mermaidCode) return;
-
-    // Dynamically load mermaid library
-    const script = document.createElement('script');
-    script.src = 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js';
-    script.async = true;
+    if (!containerRef.current) {
+      console.log('Container ref is null');
+      return;
+    }
     
-    script.onload = () => {
-      const mermaid = window.mermaid;
+    // Access mermaid code from global variable if it exists
+    // This looks for mermaidCode in multiple possible places
+    const mermaidCode = window.mermaidCode || 
+                        (window.props && window.props.mermaidCode) || 
+                        (typeof props !== 'undefined' && props && props.mermaidCode);
+    
+    if (!mermaidCode) {
+      console.log('Looking for mermaid code in global context');
+      // Try to find the mermaid code from the component's context
+      const diagramElements = document.getElementsByClassName('mermaid');
+      if (diagramElements.length > 0) {
+        // Use content from an existing mermaid element if found
+        const existingMermaidCode = diagramElements[0].textContent;
+        if (existingMermaidCode) {
+          console.log('Found mermaid code in DOM element');
+          renderWithCode(existingMermaidCode);
+          return;
+        }
+      }
       
+      setError('No mermaid code found. Please check component implementation.');
+      return;
+    }
+
+    renderWithCode(mermaidCode);
+  }, [zoomLevel]);
+
+  // Function to render with provided code
+  const renderWithCode = (code) => {
+    console.log('Attempting to render mermaid diagram');
+
+    // Clear previous content and errors
+    containerRef.current.innerHTML = '';
+    setError(null);
+
+    // Check if mermaid is already loaded
+    if (window.mermaid) {
+      renderDiagram(window.mermaid, code);
+    } else {
+      // Dynamically load mermaid library
+      const script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js';
+      script.async = true;
+      
+      script.onload = () => {
+        console.log('Mermaid script loaded');
+        renderDiagram(window.mermaid, code);
+      };
+      
+      script.onerror = (e) => {
+        console.error('Failed to load mermaid script:', e);
+        setError('Failed to load mermaid library');
+      };
+      
+      document.body.appendChild(script);
+    }
+  };
+
+  // Function to actually render the diagram
+  const renderDiagram = (mermaid, code) => {
+    try {
+      console.log('Configuring mermaid');
       // Configure mermaid
       mermaid.initialize({
         startOnLoad: false,  // We'll manually initialize
@@ -27,138 +165,65 @@ export default function MermaidRenderer() {
         securityLevel: 'loose',
       });
       
-      try {
-        // Clear previous content
-        containerRef.current.innerHTML = '';
-        
-        // Create a container for the diagram
-        const diagramContainer = document.createElement('div');
-        diagramContainer.className = 'mermaid';
-        diagramContainer.textContent = props.mermaidCode;
-        containerRef.current.appendChild(diagramContainer);
-        
-        // Use the parseError callback to catch syntax errors
-        const renderResult = mermaid.parse(props.mermaidCode);
-        if (!renderResult) {
-          // If parse returned false, check for syntax errors
-          mermaid.init(undefined, diagramContainer)
-            .catch(err => {
-              console.error('Mermaid parsing error:', err);
-              // Return error to parent tool
-              updateElement({ syntaxError: err.message || 'Syntax error in diagram' });
-              setError(`Syntax error in diagram: ${err.message || 'Invalid mermaid syntax'}`);
-            });
-        } else {
-          // If no parse errors, render normally
-          mermaid.init(undefined, diagramContainer);
-          setError(null);
-        }
-      } catch (err) {
-        console.error('Mermaid rendering error:', err);
-        // Return error to parent tool
-        updateElement({ syntaxError: err.message || 'Error rendering diagram' });
-        setError(`Error rendering diagram: ${err.message || 'Unknown error'}`);
-      }
-    };
-    
-    script.onerror = () => {
-      setError('Failed to load mermaid library');
-      // Return error to parent tool
-      updateElement({ syntaxError: 'Failed to load mermaid library' });
-    };
-    
-    document.body.appendChild(script);
-    
-    return () => {
-      if (document.body.contains(script)) {
-        document.body.removeChild(script);
-      }
-    };
-  }, [props.mermaidCode]);
-
-  // Zoom in function
-  const zoomIn = () => {
-    setZoom(prevZoom => Math.min(prevZoom + 0.2, 3));
+      // Create a container for the diagram
+      const diagramContainer = document.createElement('div');
+      diagramContainer.className = 'mermaid';
+      diagramContainer.textContent = code;
+      containerRef.current.appendChild(diagramContainer);
+      
+      mermaid.init(undefined, diagramContainer);
+    } catch (err) {
+      console.error('Mermaid rendering error:', err);
+      setError(`Mermaid rendering error: ${err.message}`);
+    }
   };
-
-  // Zoom out function
-  const zoomOut = () => {
-    setZoom(prevZoom => Math.max(prevZoom - 0.2, 0.5));
-  };
-
-  // Toggle popup
-  const togglePopup = () => {
-    setIsPopup(!isPopup);
-  };
-
-  if (error) {
-    return (
-      <div className="p-4 border border-red-300 bg-red-50 text-red-700 rounded">
-        <h3 className="font-semibold mb-2">Mermaid Diagram Error</h3>
-        <pre className="whitespace-pre-wrap text-sm">{error}</pre>
-      </div>
-    );
-  }
-
-  const diagramStyles = {
-    transform: `scale(${zoom})`,
-    transformOrigin: 'top left',
-    transition: 'transform 0.2s ease-in-out',
-  };
-
-  // Use 75% of screen instead of full screen for popup
-  const popupStyles = isPopup ? {
-    position: 'fixed',
-    top: '12.5%',
-    left: '12.5%',
-    width: '75%',
-    height: '75%',
-    zIndex: 50,
-    backgroundColor: 'white',
-    borderRadius: '8px',
-    boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
-    overflow: 'auto',
-    padding: '1rem',
-  } : {};
 
   return (
-    <div>
-      <div className="flex gap-2 mb-2">
-        <Button variant="outline" size="sm" onClick={zoomIn}>
-          <ZoomIn className="h-4 w-4 mr-1" /> Zoom In
-        </Button>
-        <Button variant="outline" size="sm" onClick={zoomOut}>
-          <ZoomOut className="h-4 w-4 mr-1" /> Zoom Out
-        </Button>
-        <Button variant="outline" size="sm" onClick={togglePopup}>
-          <Maximize className="h-4 w-4 mr-1" /> {isPopup ? 'Exit Enlarged View' : 'Enlarge'}
-        </Button>
+    <div className="mermaid-renderer-container" style={styles.container}>
+      {/* Zoom controls */}
+      <div className="zoom-controls" style={styles.zoomControls}>
+        <button 
+          onClick={handleZoomOut}
+          style={{...styles.button, ...styles.iconButton}}
+          aria-label="Zoom out"
+        >
+          <span style={styles.buttonIcon}>-</span>
+        </button>
+        
+        <button 
+          onClick={handleResetZoom}
+          style={styles.button}
+          aria-label="Reset zoom"
+        >
+          {Math.round(zoomLevel * 100)}%
+        </button>
+        
+        <button 
+          onClick={handleZoomIn}
+          style={{...styles.button, ...styles.iconButton}}
+          aria-label="Zoom in"
+        >
+          <span style={styles.buttonIcon}>+</span>
+        </button>
       </div>
       
-      {/* Render main or popup view */}
-      {isPopup ? (
-        <div style={popupStyles}>
-          <div className="flex justify-between items-center mb-3 border-b pb-2">
-            <h3 className="font-medium">Mermaid Diagram</h3>
-            <Button variant="ghost" size="sm" onClick={togglePopup}>
-              <X className="h-4 w-4" />
-            </Button>
+      {/* Scrollable diagram area */}
+      <div style={styles.diagramContainer}>
+        <ScrollArea style={styles.scrollArea}>
+          {/* Error message if rendering fails */}
+          {error && (
+            <div style={styles.errorMessage}>
+              {error}
+            </div>
+          )}
+          
+          {/* Diagram container */}
+          <div style={styles.getDiagramStyles(zoomLevel)}>
+            <div ref={containerRef} />
           </div>
-          <div 
-            ref={containerRef} 
-            className="mermaid-container" 
-            style={diagramStyles}
-          ></div>
-        </div>
-      ) : (
-        <div className="bg-white border border-gray-200 rounded-md overflow-auto p-4">
-          <div 
-            ref={containerRef} 
-            className="mermaid-container" 
-            style={diagramStyles}
-          ></div>
-        </div>
-      )}
+          <ScrollBar orientation="horizontal" />
+        </ScrollArea>
+      </div>
     </div>
   );
 }
